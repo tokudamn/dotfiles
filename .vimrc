@@ -2,25 +2,11 @@
 " 内部エンコーディング設定
 "-------------------------------------------------------------------------------
 set encoding=utf-8                      " 内部エンコーディング
-
-
-
 scriptencoding utf-8                    " このファイルのエンコード
-set nocompatible                        " vi互換しない
 
-
-
-"-------------------------------------------------------------------------------
-" ファイルタイプ設定(off)
-"-------------------------------------------------------------------------------
-filetype off                            " ファイルタイプの自動検出off
-filetype plugin off                     " ファイルタイプ別プラグインのロードoff
-filetype indent off                     " ファイルタイプ別インデントのロードoff
-
-
-
-
-
+if &compatible
+  set nocompatible                      " vi互換しない
+endif
 
 
 "-------------------------------------------------------------------------------
@@ -32,17 +18,32 @@ set fileformat=unix                     " 基本ファイルフォーマット
 set fileformats=unix,dos,mac            " ファイルフォーマット自動判別(優先順)
 
 
+"-------------------------------------------------------------------------------
+" Note: Skip initialization for vim-tiny or vim-small.
+"-------------------------------------------------------------------------------
+if !1 | finish | endif
+
+
+"-------------------------------------------------------------------------------
+" ファイルタイプ設定(off)
+"-------------------------------------------------------------------------------
+filetype off                            " ファイルタイプの自動検出off
+filetype plugin off                     " ファイルタイプ別プラグインのロードoff
+filetype indent off                     " ファイルタイプ別インデントのロードoff
+
 
 "-------------------------------------------------------------------------------
 " システム設定
 "-------------------------------------------------------------------------------
-set nobackup                            " backupファイルを作らない
-"set writebackup                         " ファイルの上書きの前にbackupファイルを作る
-"                                        " nobackupの場合は、上書きに成功したら削除される
-"set backupdir=~/vimfiles/backup         " backupファイルディレクトリ
-set noswapfile                          " swapファイルを作らない
-"set directory=~/vimfiles/swap           " swapファイルディレクトリ
+"set nobackup                            " backupファイルを作らない
+set writebackup                         " ファイルの上書きの前にbackupファイルを作る
+"                                       " nobackupの場合は、上書きに成功したら削除される
+set backupdir=~/vimfiles/backup         " backupファイルディレクトリ
+"set noswapfile                          " swapファイルを作らない
+set directory=~/vimfiles/swap           " swapファイルディレクトリ
 set viminfo=                            " viminfoファイルを作らない
+"set noundofile                          " undoファイルを作らない
+set undodir=~/vimfiles/undo             " undoファイルディレクトリ
 
 set confirm                             " 保存されていないファイルがあるとき、終了前に保存確認
 set hidden                              " 保存されていないファイルがあるときでも、保存しないで他のファイルを表示
@@ -67,8 +68,7 @@ set wildmode=list:longest,full          " 補完モード
   " "list:longest"  複数のマッチがあるときは、全てのマッチを羅列し、共通する最長の文字列までが補完される
 
 "set shellslash                          " Windowsで"/"を有効
-set virtualedit+=block                  " 矩形選択時に文字のないところでも選択可能
-
+set virtualedit& virtualedit+=block                  " 矩形選択時に文字のないところでも選択可能
 
 
 "-------------------------------------------------------------------------------
@@ -124,7 +124,6 @@ augroup foldmethod-syntax
 augroup END
 
 
-
 "-------------------------------------------------------------------------------
 " 検索/置換設定
 "-------------------------------------------------------------------------------
@@ -134,7 +133,6 @@ set incsearch                           " インクリメンタルサーチ有�
 set hlsearch                            " 検索結果ハイライト表示
 set wrapscan                            " 検索をファイルの先頭へループする
 set gdefault                            " 置換の時 g オプションをデフォルトで有効
-
 
 
 "-------------------------------------------------------------------------------
@@ -156,15 +154,9 @@ set smartindent                         " 前行の末尾に合わせてイン�
 "-------------------------------------------------------------------------------
 " ランタイムパス設定
 "-------------------------------------------------------------------------------
-if !1 | finish | endif
-
 if has('vim_starting')
-    set nocompatible                    " Be iMproved
-
-    " Required:
     set runtimepath+=~/vimfiles/bundle/neobundle.vim/
 endif
-
 
 
 "-------------------------------------------------------------------------------
@@ -228,6 +220,7 @@ NeoBundle 'vim-scripts/Wombat'
 
 call neobundle#end()
 
+
 "-------------------------------------------------------------------------------
 " ファイルタイプ設定(on)
 "-------------------------------------------------------------------------------
@@ -276,7 +269,7 @@ function! s:my_action.func(candidates)
 endfunction
 call unite#custom_action('file', 'my_split', s:my_action)
 
-let s:my_action = { 'is_selectable' : 1 }                     
+let s:my_action = { 'is_selectable' : 1 }
 function! s:my_action.func(candidates)
   wincmd p
   exec 'vsplit '. a:candidates[0].action__path
@@ -291,7 +284,6 @@ let g:vim_markdown_liquid=1
 let g:vim_markdown_frontmatter=1
 let g:vim_markdown_math=1
 au BufRead,BufNewFile *.{txt,text} set filetype=markdown
-
 
 
 "-------------------------------------------------------------------------------
@@ -310,7 +302,6 @@ au BufRead,BufNewFile *.{txt,text} set filetype=markdown
 "-------------------------------------------------------------------------------
 
 
-
 "---------------------------------------
 " Prefix
 nnoremap [space]  <Nop>
@@ -319,6 +310,7 @@ xmap     <Space>  [space]
 
 nnoremap [Tag]           <Nop>
 nmap     <Space>t        [Tag]
+
 
 "---------------------------------------
 " vimrc編集/反映
@@ -331,6 +323,7 @@ nnoremap [space]s :<C-u>source $MYVIMRC<CR>
 "---------------------------------------
 " インサートから抜けたら、IME解除
 inoremap <silent> <ESC> <ESC>:set iminsert=0<CR>
+
 
 "---------------------------------------
 " 全角スペース表示
@@ -367,14 +360,14 @@ endfunction
 " Set tabline.
 function! s:my_tabline()  "{{{
   let s = ''
-  for i in range(1, tabpagenr('$'))
-    let bufnrs = tabpagebuflist(i)
-    let bufnr = bufnrs[tabpagewinnr(i) - 1]  " first window, first appears
-    let no = i  " display 0-origin tabpagenr.
+  for s:i in range(1, tabpagenr('$'))
+    let bufnrs = tabpagebuflist(s:i)
+    let bufnr = bufnrs[tabpagewinnr(s:i) - 1]  " first window, first appears
+    let no = s:i  " display 0-origin tabpagenr.
     let mod = getbufvar(bufnr, '&modified') ? '!' : ' '
     let title = fnamemodify(bufname(bufnr), ':t')
     let title = '[' . title . ']'
-    let s .= '%'.i.'T'
+    let s .= '%'.s:i.'T'
     let s .= '%#' . (i == tabpagenr() ? 'TabLineSel' : 'TabLine') . '#'
     let s .= no . ':' . title
     let s .= mod
@@ -390,8 +383,8 @@ set showtabline=2 " 常にタブラインを表示
 "nnoremap    [Tag]   <Nop>
 "nmap    t [Tag]
 " Tab jump
-for n in range(1, 9)
-  execute 'nnoremap <silent> [Tag]'.n  ':<C-u>tabnext'.n.'<CR>'
+for s:n in range(1, 9)
+  execute 'nnoremap <silent> [Tag]'.s:n  ':<C-u>tabnext'.s:n.'<CR>'
 endfor
 " t1 で1番左のタブ、t2 で1番左から2番目のタブにジャンプ
 
@@ -404,5 +397,4 @@ map <silent> [Tag]t :tabnext<CR>
 map <silent> [Tag]p :tabprevious<CR>
 " tp 前のタブ
 " ----- 転用ここまで -----
-
 
