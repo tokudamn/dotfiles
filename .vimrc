@@ -80,7 +80,10 @@ set title                               " タイトル表示
 set list                                " 不可視文字を表示
 set listchars=eol:¬,tab:▸\ ,trail:-,extends:>,precedes:<,nbsp:%
 
-set display=uhex                        " 表示できない文字を16進数で表示
+set display=lastline,uhex               " 最後の行をできる限りまで表示
+                                        " uhex:表示できない文字を16進数で表示
+
+set pumheight=10                        " ポップアップメニューの最大高さを制御
 
 set matchpairs& matchpairs+=<:>         " 対応括弧に<と>のペアを追加
 set showmatch                           " 括弧の対応表示
