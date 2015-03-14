@@ -194,8 +194,8 @@ NeoBundle 'fuenor/qfixgrep.git'
 NeoBundle 'itchyny/lightline.vim'
 
 " markdown用
-"NeoBundle 'kannokanno/previm'
-"NeoBundle 'tyru/open-browser.vim'
+NeoBundle 'kannokanno/previm'
+NeoBundle 'tyru/open-browser.vim'
 NeoBundle "godlygeek/tabular"
 NeoBundle "rcmdnk/vim-markdown-quote-syntax"
 NeoBundle "rcmdnk/vim-markdown"
@@ -317,6 +317,9 @@ nnoremap [space]  <Nop>
 nmap     <Space>  [space]
 xmap     <Space>  [space]
 
+nnoremap [Tag]           <Nop>
+nmap     <Space>t        [Tag]
+
 "---------------------------------------
 " vimrc編集/反映
 nnoremap [space]v :<C-u>tabedit $MYVIMRC<CR>
@@ -342,3 +345,64 @@ if has('syntax')
   augroup END
   call ZenkakuSpace()
 endif
+
+
+"---------------------------------------
+" タブページ用
+" 以下のサイトからの転用
+" http://qiita.com/wadako111/items/755e753677dd72d8036d
+" ---
+" tp : 前のタブ
+" tt : 次のタブ
+" t1, t2,,,t9 : 左からn番目のタブにジャンプ
+" tn : 新しいタブ
+" tx : タブを閉じる
+" ---
+" ----- 転用ここから（一部変更） -----
+" Anywhere SID.
+function! s:SID_PREFIX()
+  return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID_PREFIX$')
+endfunction
+
+" Set tabline.
+function! s:my_tabline()  "{{{
+  let s = ''
+  for i in range(1, tabpagenr('$'))
+    let bufnrs = tabpagebuflist(i)
+    let bufnr = bufnrs[tabpagewinnr(i) - 1]  " first window, first appears
+    let no = i  " display 0-origin tabpagenr.
+    let mod = getbufvar(bufnr, '&modified') ? '!' : ' '
+    let title = fnamemodify(bufname(bufnr), ':t')
+    let title = '[' . title . ']'
+    let s .= '%'.i.'T'
+    let s .= '%#' . (i == tabpagenr() ? 'TabLineSel' : 'TabLine') . '#'
+    let s .= no . ':' . title
+    let s .= mod
+    let s .= '%#TabLineFill# '
+  endfor
+  let s .= '%#TabLineFill#%T%=%#TabLine#'
+  return s
+endfunction "}}}
+let &tabline = '%!'. s:SID_PREFIX() . 'my_tabline()'
+set showtabline=2 " 常にタブラインを表示
+
+" The prefix key.
+"nnoremap    [Tag]   <Nop>
+"nmap    t [Tag]
+" Tab jump
+for n in range(1, 9)
+  execute 'nnoremap <silent> [Tag]'.n  ':<C-u>tabnext'.n.'<CR>'
+endfor
+" t1 で1番左のタブ、t2 で1番左から2番目のタブにジャンプ
+
+map <silent> [Tag]n :tablast <bar> tabnew<CR>
+" tc 新しいタブを一番右に作る
+map <silent> [Tag]x :tabclose<CR>
+" tx タブを閉じる
+map <silent> [Tag]t :tabnext<CR>
+" tn 次のタブ
+map <silent> [Tag]p :tabprevious<CR>
+" tp 前のタブ
+" ----- 転用ここまで -----
+
+
